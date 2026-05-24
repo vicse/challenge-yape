@@ -6,6 +6,7 @@ import { CardProcessingFailedDomainEvent } from 'io/cards/domain/events/card-pro
 import { CardRepository } from 'io/cards/domain/repositories/card.repository';
 import { CardStatus } from 'io/cards/domain/enums/card-status.enum';
 import { CardGenerator } from 'io/shared/utils/card-generator';
+import { TimeUtils } from 'io/shared/utils/time';
 import { ProcessCardCommand } from '../process-card.command';
 
 @CommandHandler(ProcessCardCommand)
@@ -59,13 +60,22 @@ export class ProcessCardHandler implements ICommandHandler<ProcessCardCommand, v
 
       if (!failed) {
         success = true;
-      } else {
-        this.logger.warn({
-          message: 'Attempt failed',
-          correlationId: requestId,
-          attempt: attempts,
-          maxRetries: this.maxRetries,
-        });
+        continue;
+      }
+
+      const hasRetriesLeft = attempts < this.maxRetries;
+      const backoffMs = hasRetriesLeft ? TimeUtils.getExponentialBackoffMs(attempts) : undefined;
+
+      this.logger.warn({
+        message: 'Attempt failed',
+        correlationId: requestId,
+        attempt: attempts,
+        maxRetries: this.maxRetries,
+        ...(backoffMs && { nextRetryInMs: backoffMs }),
+      });
+
+      if (hasRetriesLeft) {
+        await TimeUtils.delay(backoffMs!);
       }
     }
 
@@ -98,8 +108,8 @@ export class ProcessCardHandler implements ICommandHandler<ProcessCardCommand, v
   }
 
   private async simulateExternalLoad(): Promise<void> {
-    const delay = Math.floor(Math.random() * 300) + 200;
-    await new Promise((resolve) => setTimeout(resolve, delay));
+    const ms = TimeUtils.getRandomMs(200, 500);
+    await TimeUtils.delay(ms);
   }
 
   private randomFailure(): boolean {
