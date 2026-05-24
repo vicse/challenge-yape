@@ -1,8 +1,22 @@
+import { ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import { CardIssuerModule } from './card-issuer.module';
+import { DomainExceptionFilter } from './filters/domain-exception.filter';
 
 async function bootstrap() {
   const app = await NestFactory.create(CardIssuerModule);
-  await app.listen(process.env.port ?? 3000);
+
+  app.useGlobalFilters(new DomainExceptionFilter());
+
+  app.useGlobalPipes(
+    new ValidationPipe({
+      whitelist: true,
+      transform: true,
+      forbidNonWhitelisted: true,
+    }),
+  );
+
+  const port = process.env.PORT ?? 3000;
+  await app.listen(port);
 }
 void bootstrap();
