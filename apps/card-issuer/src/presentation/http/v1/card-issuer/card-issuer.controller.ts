@@ -1,6 +1,6 @@
 import { Body, Controller, HttpCode, HttpStatus, Post } from '@nestjs/common';
 import { CommandBus } from '@nestjs/cqrs';
-import { IssueCardCommand } from '../../../../application/commands/issue-card.command';
+import { IssueCardCommand } from '../../../../application/commands/v1/issue-card.command';
 import { IssueCardResult } from '../../../../application/commands/v1/issue-card.result';
 import { IssueCardRequest } from './dto/card-issuer.request';
 

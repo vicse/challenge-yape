@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { CardOrmEntity } from '../persistence/entities/card.orm-entity';
 import { CardRepository } from '../../domain/repositories/card.repository';
+import { CardOrmEntity } from '../persistence/entities/card.orm-entity';
 import { TypeOrmCardRepository } from '../persistence/repositories/typeorm-card.repository';
 
 @Module({

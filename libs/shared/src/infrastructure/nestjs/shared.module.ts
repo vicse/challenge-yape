@@ -1,7 +1,9 @@
-import { Module } from '@nestjs/common';
+import { Global, Module } from '@nestjs/common';
+import { KafkaModule } from '../kafka/kafka.module';
 
+@Global()
 @Module({
-  providers: [],
-  exports: [],
+  imports: [KafkaModule],
+  exports: [KafkaModule],
 })
 export class SharedModule {}

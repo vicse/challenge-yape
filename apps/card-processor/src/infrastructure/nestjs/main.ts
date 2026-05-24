@@ -3,6 +3,8 @@ import { CardProcessorModule } from './card-processor.module';
 
 async function bootstrap() {
   const app = await NestFactory.create(CardProcessorModule);
-  await app.listen(process.env.port ?? 3000);
+
+  const port = process.env.PORT ?? 3001;
+  await app.listen(port);
 }
 void bootstrap();

@@ -1,6 +1,6 @@
 import { ArgumentsHost, Catch, ExceptionFilter, HttpStatus } from '@nestjs/common';
-import { CardRequestAlreadyExistsException } from 'apps/card-issuer/src/domain/exceptions/card-request-already-exists.exception';
 import { Response } from 'express';
+import { CardRequestAlreadyExistsException } from '../../../domain/exceptions/card-request-already-exists.exception';
 
 const DOMAIN_EXCEPTION_STATUS_MAP = new Map<string, number>([
   [CardRequestAlreadyExistsException.name, HttpStatus.CONFLICT],
