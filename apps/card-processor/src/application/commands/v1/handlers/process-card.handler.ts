@@ -25,17 +25,22 @@ export class ProcessCardHandler implements ICommandHandler<ProcessCardCommand, v
   async execute(command: ProcessCardCommand): Promise<void> {
     const { cardId, requestId, forceError } = command;
 
-    this.logger.log(`Processing card request: ${requestId}`);
+    this.logger.log({ message: 'Processing card request', correlationId: requestId, cardId });
 
     const card = await this.cardRepository.findById(cardId);
 
     if (!card) {
-      this.logger.error(`Card not found: ${cardId}`);
+      this.logger.error({ message: 'Card not found', correlationId: requestId, cardId });
       return;
     }
 
     if (card.Status !== CardStatus.PENDING) {
-      this.logger.warn(`Card ${cardId} is already in status ${card.Status}, skipping`);
+      this.logger.warn({
+        message: 'Card already processed, skipping',
+        correlationId: requestId,
+        cardId,
+        status: card.Status,
+      });
       return;
     }
 
@@ -55,7 +60,12 @@ export class ProcessCardHandler implements ICommandHandler<ProcessCardCommand, v
       if (!failed) {
         success = true;
       } else {
-        this.logger.warn(`Attempt ${attempts}/${this.maxRetries} failed for requestId: ${requestId}`);
+        this.logger.warn({
+          message: 'Attempt failed',
+          correlationId: requestId,
+          attempt: attempts,
+          maxRetries: this.maxRetries,
+        });
       }
     }
 
@@ -69,7 +79,7 @@ export class ProcessCardHandler implements ICommandHandler<ProcessCardCommand, v
 
       this.eventBus.publish(new CardIssuedDomainEvent(card));
 
-      this.logger.log(`Card issued successfully for requestId: ${requestId}`);
+      this.logger.log({ message: 'Card issued successfully', correlationId: requestId, cardId, attempts });
     } else {
       card.markAsFailed();
       await this.cardRepository.save(card);
@@ -78,7 +88,12 @@ export class ProcessCardHandler implements ICommandHandler<ProcessCardCommand, v
         new CardProcessingFailedDomainEvent('Max retries exceeded', attempts, { cardId, requestId, forceError }),
       );
 
-      this.logger.error(`Card processing failed after ${attempts} retries for requestId: ${requestId}`);
+      this.logger.error({
+        message: 'Card processing failed, sending to DLQ',
+        correlationId: requestId,
+        cardId,
+        attempts,
+      });
     }
   }
 

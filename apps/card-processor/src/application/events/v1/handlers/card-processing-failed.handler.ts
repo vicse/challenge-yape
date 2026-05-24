@@ -14,9 +14,13 @@ export class CardProcessingFailedHandler implements IEventHandler<CardProcessing
   async handle(event: CardProcessingFailedDomainEvent): Promise<void> {
     const { reason, attempts, originalPayload } = event;
 
-    this.logger.log(
-      `Publishing event to topic "${TOPICS.CARD_REQUESTED_DLQ}" for requestId: ${originalPayload.requestId}`,
-    );
+    this.logger.log({
+      message: 'Publishing event to DLQ',
+      correlationId: originalPayload.requestId,
+      topic: TOPICS.CARD_REQUESTED_DLQ,
+      reason,
+      attempts,
+    });
 
     await this.sharedProducer.publish(TOPICS.CARD_REQUESTED_DLQ, originalPayload.requestId, {
       reason,

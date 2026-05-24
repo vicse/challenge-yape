@@ -1,4 +1,4 @@
-import { Inject } from '@nestjs/common';
+import { Inject, Logger } from '@nestjs/common';
 import { CommandHandler, EventBus, ICommandHandler } from '@nestjs/cqrs';
 import { CardRequestedDomainEvent } from 'io/cards/domain/events/card-requested.event';
 import { Card } from 'io/cards/domain/entities/card.entity';
@@ -9,6 +9,8 @@ import { IssueCardResult } from '../issue-card.result';
 
 @CommandHandler(IssueCardCommand)
 export class IssueCardHandler implements ICommandHandler<IssueCardCommand, IssueCardResult> {
+  private readonly logger = new Logger(IssueCardHandler.name);
+
   constructor(
     @Inject(CardRepository)
     private readonly cardRepository: CardRepository,
@@ -27,6 +29,8 @@ export class IssueCardHandler implements ICommandHandler<IssueCardCommand, Issue
     const card = Card.create(requestId, command.customer, command.product);
 
     await this.cardRepository.save(card);
+
+    this.logger.log({ message: 'Card request created', correlationId: requestId, status: card.Status });
 
     this.eventBus.publish(new CardRequestedDomainEvent(card, command.forceError));
 

@@ -35,9 +35,19 @@ export class CardRequestedConsumer implements OnModuleInit, OnModuleDestroy {
         const payload = event.data;
 
         if (payload.error) {
-          this.logger.warn(`Skipping failed card request: ${JSON.stringify(payload.error)}`);
+          this.logger.warn({
+            message: 'Skipping failed card request',
+            correlationId: payload.requestId,
+            error: payload.error,
+          });
           return;
         }
+
+        this.logger.log({
+          message: 'Message received, dispatching command',
+          correlationId: payload.requestId,
+          topic: TOPICS.CARD_REQUESTED,
+        });
 
         const command = new ProcessCardCommand(payload.cardId, payload.requestId, payload.forceError ?? false);
 

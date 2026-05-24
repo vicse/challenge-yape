@@ -14,7 +14,7 @@ export class CardIssuedHandler implements IEventHandler<CardIssuedDomainEvent> {
   async handle(event: CardIssuedDomainEvent): Promise<void> {
     const { card } = event;
 
-    this.logger.log(`Publishing event to topic "${TOPICS.CARD_ISSUED}" for requestId: ${card.RequestId}`);
+    this.logger.log({ message: 'Publishing event', correlationId: card.RequestId, topic: TOPICS.CARD_ISSUED });
 
     await this.sharedProducer.publish(TOPICS.CARD_ISSUED, card.RequestId, {
       cardId: card.Id,
