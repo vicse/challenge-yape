@@ -52,5 +52,49 @@ services:
       KAFKA_CLUSTERS_0_NAME: local
       KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:29092
 
+  card-issuer:
+    build:
+      context: .
+      target: card-issuer
+    container_name: reto-yape-card-issuer
+    restart: always
+    depends_on:
+      - postgres
+      - kafka
+    ports:
+      - '3000:3000'
+    environment:
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_USER: postgres
+      DB_PASSWORD: password
+      DB_NAME: reto_yape
+      KAFKA_CLIENT_ID: card-issuer
+      KAFKA_BROKERS: kafka:29092
+      ISSUER_PORT: 3000
+
+  card-processor:
+    build:
+      context: .
+      target: card-processor
+    container_name: reto-yape-card-processor
+    restart: always
+    depends_on:
+      - postgres
+      - kafka
+    ports:
+      - '3001:3001'
+    environment:
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_USER: postgres
+      DB_PASSWORD: password
+      DB_NAME: reto_yape
+      KAFKA_CLIENT_ID: card-processor
+      KAFKA_BROKERS: kafka:29092
+      KAFKA_FROM_BEGINNING: 'false'
+      PROCESSOR_PORT: 3001
+      MAX_RETRIES_PROCESS_CARD: 3
+
 volumes:
   postgres_data:

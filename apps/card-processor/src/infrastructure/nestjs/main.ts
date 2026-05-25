@@ -7,7 +7,7 @@ async function bootstrap() {
 
   app.useLogger(new JsonLoggerService());
 
-  const port = process.env.PORT ?? 3001;
+  const port = process.env.PROCESSOR_PORT ?? 3001;
   await app.listen(port);
 }
 void bootstrap();
