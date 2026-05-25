@@ -16,9 +16,13 @@
     "start:processor:prod": "node dist/apps/card-processor/main",
     "lint": "eslint \"{src,apps,libs,test}/**/*.ts\" --fix",
     "test": "jest",
+    "test:unit": "jest --testPathPatterns='.spec.ts$'",
+    "test:unit:issuer": "jest --testPathPatterns='card-issuer/test/unit'",
+    "test:unit:processor": "jest --testPathPatterns='card-processor/test/unit'",
     "test:watch": "jest --watch",
     "test:cov": "jest --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
+    "test:e2e": "jest --testPathPatterns='.e2e-spec.ts$'",
     "test:e2e:issuer": "jest --config ./apps/card-issuer/test/jest-e2e.json",
     "test:e2e:processor": "jest --config ./apps/card-processor/test/jest-e2e.json",
     "migration:generate": "node --env-file=.env -r ts-node/register ./node_modules/typeorm/cli.js migration:generate libs/cards/src/infrastructure/persistence/migrations/init -d libs/cards/src/infrastructure/persistence/config/data-source.ts",
@@ -73,7 +77,7 @@
       "ts"
     ],
     "rootDir": ".",
-    "testRegex": ".*\\.spec\\.ts$",
+    "testRegex": ".*\\.(spec|e2e-spec)\\.ts$",
     "transform": {
       "^.+\\.(t|j)s$": "ts-jest"
     },
@@ -87,7 +91,7 @@
       "<rootDir>/libs/"
     ],
     "moduleNameMapper": {
-      "^cards/cards(|/.*)$": "<rootDir>/libs/cards/src/$1",
+      "^io/cards(|/.*)$": "<rootDir>/libs/cards/src/$1",
       "^io/shared(|/.*)$": "<rootDir>/libs/shared/src/$1"
     }
   }
