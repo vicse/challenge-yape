@@ -289,6 +289,78 @@ Publicado cuando se agotan los reintentos.
 
 Para forzar que una solicitud falle y llegue al DLQ, envía `"forceError": true` en el request. Esto hace que todos los reintentos fallen garantizando la publicación al topic DLQ.
 
+### Ejemplo paso a paso
+
+**1. Enviar solicitud con `forceError: true`:**
+
+```bash
+curl -X POST http://localhost:3000/v1/cards/issue \
+  -H "Content-Type: application/json" \
+  -d '{
+    "customer": {
+      "documentType": "DNI",
+      "documentNumber": "99999999",
+      "fullName": "Test DLQ User",
+      "age": 30,
+      "email": "dlq@test.com"
+    },
+    "product": {
+      "type": "VISA",
+      "currency": "PEN"
+    },
+    "forceError": true
+  }'
+```
+
+**2. Response esperado:**
+
+```json
+{
+  "requestId": "435c29b3-a67f-4feb-9b31-dab623dee349",
+  "status": "PENDING"
+}
+```
+
+**3. Logs del processor (reintentos con backoff exponencial):**
+
+```json
+{"timestamp":"...","level":"INFO","context":"CardRequestedConsumer","message":"Message received, dispatching command","correlationId":"435c29b3-..."}
+{"timestamp":"...","level":"INFO","context":"ProcessCardHandler","message":"Processing card request","correlationId":"435c29b3-..."}
+{"timestamp":"...","level":"WARN","context":"ProcessCardHandler","message":"Attempt failed","correlationId":"435c29b3-...","attempt":1,"maxRetries":3,"nextRetryInMs":1000}
+{"timestamp":"...","level":"WARN","context":"ProcessCardHandler","message":"Attempt failed","correlationId":"435c29b3-...","attempt":2,"maxRetries":3,"nextRetryInMs":2000}
+{"timestamp":"...","level":"WARN","context":"ProcessCardHandler","message":"Attempt failed","correlationId":"435c29b3-...","attempt":3,"maxRetries":3}
+{"timestamp":"...","level":"ERROR","context":"ProcessCardHandler","message":"Card processing failed, sending to DLQ","correlationId":"435c29b3-...","attempts":3}
+```
+
+**4. Verificar en Kafka UI:**
+
+Abre http://localhost:8080 → topic `io.card.requested.v1.dlq` → verás el mensaje:
+
+```json
+{
+  "id": 3,
+  "source": "435c29b3-a67f-4feb-9b31-dab623dee349",
+  "type": "io.card.requested.v1.dlq",
+  "data": {
+    "reason": "Max retries exceeded",
+    "attempts": 3,
+    "originalPayload": {
+      "cardId": "...",
+      "requestId": "435c29b3-a67f-4feb-9b31-dab623dee349",
+      "forceError": true
+    }
+  }
+}
+```
+
+**5. Verificar en base de datos:**
+
+La card quedó con status `FAILED`:
+
+```sql
+SELECT id, request_id, status FROM cards WHERE document_number = '99999999';
+```
+
 ## Variables de Entorno
 
 | Variable                   | Default        | Descripción                          |
