@@ -9,6 +9,7 @@ import { ProcessCardHandler } from '../../application/commands/v1/handlers/proce
 import { CardRequestedConsumer } from '../kafka/card-requested.consumer';
 import { CardIssuedHandler } from '../../application/events/v1/handlers/card-issued.handler';
 import { CardProcessingFailedHandler } from '../../application/events/v1/handlers/card-processing-failed.handler';
+import { HealthCheckController } from './health/healthcheck.controller';
 
 @Module({
   imports: [
@@ -21,6 +22,7 @@ import { CardProcessingFailedHandler } from '../../application/events/v1/handler
     SharedModule,
     CardsModule,
   ],
+  controllers: [HealthCheckController],
   providers: [ProcessCardHandler, CardRequestedConsumer, CardIssuedHandler, CardProcessingFailedHandler],
 })
 export class CardProcessorModule {}

@@ -8,6 +8,7 @@ import { SharedModule } from 'io/shared/infrastructure/nestjs/shared.module';
 import { IssueCardHandler } from '../../application/commands/v1/handlers/issue-card.handler';
 import { CardRequestedHandler } from '../../application/events/v1/handlers/card-requested.handler';
 import { CardIssuerController } from '../../presentation/http/v1/card-issuer/card-issuer.controller';
+import { HealthCheckController } from './health/healthcheck.controller';
 
 @Module({
   imports: [
@@ -20,7 +21,7 @@ import { CardIssuerController } from '../../presentation/http/v1/card-issuer/car
     SharedModule,
     CardsModule,
   ],
-  controllers: [CardIssuerController],
+  controllers: [CardIssuerController, HealthCheckController],
   providers: [IssueCardHandler, CardRequestedHandler],
 })
 export class CardIssuerModule {}
