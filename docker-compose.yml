@@ -1,19 +1,19 @@
 services:
   postgres:
     image: postgres:16-alpine
+    container_name: reto-yape-db
+    restart: always
     healthcheck:
-      test: ['CMD-SHELL', 'pg_isready -U postgres']
+      test: ['CMD-SHELL', 'pg_isready -U ${DB_USER}']
       interval: 5s
       timeout: 5s
       retries: 10
-    container_name: reto-yape-db
-    restart: always
     environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: password
-      POSTGRES_DB: reto_yape
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_NAME}
     ports:
-      - '5432:5432'
+      - '${DB_PORT}:5432'
     volumes:
       - postgres_data:/var/lib/postgresql/data
 
@@ -68,9 +68,9 @@ services:
     environment:
       DB_HOST: postgres
       DB_PORT: 5432
-      DB_USER: postgres
-      DB_PASSWORD: password
-      DB_NAME: reto_yape
+      DB_USER: ${DB_USER}
+      DB_PASSWORD: ${DB_PASSWORD}
+      DB_NAME: ${DB_NAME}
     command:
       [
         'node',
@@ -95,18 +95,18 @@ services:
       kafka:
         condition: service_started
     ports:
-      - '3000:3000'
+      - '${ISSUER_PORT}:${ISSUER_PORT}'
     environment:
       DB_HOST: postgres
       DB_PORT: 5432
-      DB_USER: postgres
-      DB_PASSWORD: password
-      DB_NAME: reto_yape
+      DB_USER: ${DB_USER}
+      DB_PASSWORD: ${DB_PASSWORD}
+      DB_NAME: ${DB_NAME}
       KAFKA_CLIENT_ID: card-issuer
       KAFKA_BROKERS: kafka:29092
-      ISSUER_PORT: 3000
+      ISSUER_PORT: ${ISSUER_PORT}
     healthcheck:
-      test: ['CMD', 'wget', '--quiet', '--tries=1', '--spider', 'http://localhost:3000/healthcheck']
+      test: ['CMD', 'wget', '--quiet', '--tries=1', '--spider', 'http://localhost:${ISSUER_PORT}/healthcheck']
       interval: 30s
       timeout: 5s
       retries: 3
@@ -124,20 +124,20 @@ services:
       kafka:
         condition: service_started
     ports:
-      - '3001:3001'
+      - '${PROCESSOR_PORT}:${PROCESSOR_PORT}'
     environment:
       DB_HOST: postgres
       DB_PORT: 5432
-      DB_USER: postgres
-      DB_PASSWORD: password
-      DB_NAME: reto_yape
+      DB_USER: ${DB_USER}
+      DB_PASSWORD: ${DB_PASSWORD}
+      DB_NAME: ${DB_NAME}
       KAFKA_CLIENT_ID: card-processor
       KAFKA_BROKERS: kafka:29092
-      KAFKA_FROM_BEGINNING: 'false'
-      PROCESSOR_PORT: 3001
-      MAX_RETRIES_PROCESS_CARD: 3
+      KAFKA_FROM_BEGINNING: ${KAFKA_FROM_BEGINNING}
+      PROCESSOR_PORT: ${PROCESSOR_PORT}
+      MAX_RETRIES_PROCESS_CARD: ${MAX_RETRIES_PROCESS_CARD}
     healthcheck:
-      test: ['CMD', 'wget', '--quiet', '--tries=1', '--spider', 'http://localhost:3000/healthcheck']
+      test: ['CMD', 'wget', '--quiet', '--tries=1', '--spider', 'http://localhost:${PROCESSOR_PORT}/healthcheck']
       interval: 30s
       timeout: 5s
       retries: 3
